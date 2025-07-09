@@ -48,10 +48,12 @@ jobs:
             sed -i 's/"3000:3000"/"3001:3000"/g' packages/twenty-docker/docker-compose.yml
             # Change la variable d'environnement NODE_PORT
             sed -i 's/NODE_PORT: 3000/NODE_PORT: 3001/g' packages/twenty-docker/docker-compose.yml
+            # Corrige le healthcheck pour le bon port
+            sed -i 's/http:\/\/localhost:3000\/healthz/http:\/\/localhost:3001\/healthz/g' packages/twenty-docker/docker-compose.yml
             echo "Port 3001 restored in docker-compose.yml"
             
             # Vérifie que les changements ont été appliqués
-            if grep -q "3001:3000" packages/twenty-docker/docker-compose.yml && grep -q "NODE_PORT: 3001" packages/twenty-docker/docker-compose.yml; then
+            if grep -q "3001:3000" packages/twenty-docker/docker-compose.yml && grep -q "NODE_PORT: 3001" packages/twenty-docker/docker-compose.yml && grep -q "localhost:3001/healthz" packages/twenty-docker/docker-compose.yml; then
               echo "✅ Port customization successfully applied"
             else
               echo "⚠️  Port customization may have failed"
