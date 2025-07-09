@@ -49,7 +49,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: curl --fail http://localhost:3000/healthz
+      test: curl --fail http://localhost:3001/healthz
       interval: 5s
       timeout: 5s
       retries: 20
