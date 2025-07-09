@@ -1,37 +1,89 @@
 name: Sync with upstream
-
 on:
   schedule:
     - cron: '0 6 * * *'   # tous les jours à 6h UTC
   workflow_dispatch:
 
 jobs:
-  sync_main:
+  sync_with_upstream:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: main
-          persist-credentials: false
-
-      - name: Sync upstream into main
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4.1
-        with:
-          target_sync_branch: main
-          target_repo_token: ${{ secrets.GITHUB_TOKEN }}
-          upstream_sync_branch: main
-          upstream_sync_repo: twentyhq/twenty
-
-  sync_capsule:
-    needs: sync_main
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: capsule
-          persist-credentials: false
-
-      - name: Merge main into capsule
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Configure Git
         run: |
-          git merge origin/main --no-edit || echo "Nothing to merge"
-          git push origin capsule
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/twentyhq/twenty.git || true
+          git fetch upstream main
+      
+      - name: Backup custom docker-compose.yml
+        run: |
+          cp packages/twenty-docker/docker-compose.yml packages/twenty-docker/docker-compose.yml.backup || true
+      
+      - name: Stash any uncommitted changes
+        run: |
+          git stash push -m "Auto-stash before sync" || true
+      
+      - name: Merge upstream changes
+        run: |
+          git merge upstream/main --no-edit || {
+            echo "Merge conflict detected! Manual intervention required."
+            echo "Conflicted files:"
+            git status --porcelain=v1 | grep "^UU" || true
+            exit 1
+          }
+      
+      - name: Restore port customization
+        run: |
+          # Restaure automatiquement le port 3001 si le fichier a été modifié
+          if [ -f packages/twenty-docker/docker-compose.yml ]; then
+            # Change le port mapping de 3000:3000 vers 3001:3000
+            sed -i 's/"3000:3000"/"3001:3000"/g' packages/twenty-docker/docker-compose.yml
+            # Change la variable d'environnement NODE_PORT
+            sed -i 's/NODE_PORT: 3000/NODE_PORT: 3001/g' packages/twenty-docker/docker-compose.yml
+            echo "Port 3001 restored in docker-compose.yml"
+            
+            # Vérifie que les changements ont été appliqués
+            if grep -q "3001:3000" packages/twenty-docker/docker-compose.yml && grep -q "NODE_PORT: 3001" packages/twenty-docker/docker-compose.yml; then
+              echo "✅ Port customization successfully applied"
+            else
+              echo "⚠️  Port customization may have failed"
+            fi
+          fi
+      
+      - name: Restore stashed changes if any
+        run: |
+          git stash pop || echo "No stash to restore"
+      
+      - name: Commit port changes if modified
+        run: |
+          if git diff --quiet packages/twenty-docker/docker-compose.yml; then
+            echo "No changes to commit"
+          else
+            git add packages/twenty-docker/docker-compose.yml
+            git commit -m "Restore custom port 3001 in docker-compose.yml"
+            echo "Port customization committed"
+          fi
+      
+      - name: Push changes
+        run: |
+          git push https://github.com/liliansev/twenty.git main
+      
+      - name: Create issue on conflict
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Sync conflict detected',
+              body: 'Automatic sync with upstream failed due to merge conflicts. Manual intervention required.'
+            });
