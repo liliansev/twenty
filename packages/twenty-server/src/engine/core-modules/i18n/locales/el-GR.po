@@ -1510,8 +1510,8 @@ msgstr "Ταυτότητα Μεταδεδομένων Συνδεδεμένου �
 
 #. js-lingui-id: PV1Nm7
 #: src/modules/person/standard-objects/person.workspace-entity.ts
-msgid "Linked Opportunities"
-msgstr "Συνδεδεμένες Ευκαιρίες"
+#~ msgid "Linked Opportunities"
+#~ msgstr "Συνδεδεμένες Ευκαιρίες"
 
 #. js-lingui-id: 6YiMr4
 #: src/modules/timeline/standard-objects/timeline-activity.workspace-entity.ts
@@ -1727,6 +1727,11 @@ msgstr ""
 msgid "Name"
 msgstr "Όνομα"
 
+#. js-lingui-id: aD053i
+#: src/engine/metadata-modules/field-metadata/services/field-metadata-relation.service.ts
+msgid "Name \"{computedMetadataNameFromLabel}\" cannot be the same on both side of the relation"
+msgstr ""
+
 #. js-lingui-id: RGz1nY
 #: src/engine/metadata-modules/field-metadata/services/field-metadata-validation.service.ts
 msgid "Name is not available, it may be duplicating another field's name."
@@ -1930,6 +1935,7 @@ msgid "Operations"
 msgstr "Λειτουργίες"
 
 #. js-lingui-id: 4MyDFl
+#: src/modules/person/standard-objects/person.workspace-entity.ts
 #: src/modules/opportunity/standard-objects/opportunity.workspace-entity.ts
 #: src/modules/company/standard-objects/company.workspace-entity.ts
 msgid "Opportunities"
@@ -2584,9 +2590,13 @@ msgstr "Το όνομα της έκδοσης της εργασίας"
 msgid "The workflow version status"
 msgstr "Η κατάσταση της έκδοσης της εργασίας"
 
+#. js-lingui-id: NbABJb
+#: src/engine/metadata-modules/utils/validate-field-name-availability.utils.ts
+msgid "This name is not available as it is already used by another field"
+msgstr ""
+
 #. js-lingui-id: yIUmAs
 #: src/engine/metadata-modules/utils/validate-metadata-name-is-not-reserved-keyword.ts
-#: src/engine/metadata-modules/utils/validate-field-name-availability.utils.ts
 msgid "This name is not available."
 msgstr ""
 
